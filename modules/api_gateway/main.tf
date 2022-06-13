@@ -1,12 +1,4 @@
-# resource "aws_api_gateway_rest_api" "test_api_gateway" {
-#   name = var.api_name
-#   endpoint_configuration {
-#     types = ["REGIONAL"]
-#   }
-# }
-
 resource "aws_api_gateway_deployment" "deployment" {
-  # count = var.additional 
   rest_api_id = var.rest_api.id
   stage_name = var.stage_name
   depends_on = [

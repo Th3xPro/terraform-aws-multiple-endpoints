@@ -2,3 +2,4 @@
 .terraform/
 code\node_modules
 **.zip
+**.tfstate**
