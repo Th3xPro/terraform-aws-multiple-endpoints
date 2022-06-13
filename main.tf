@@ -1,7 +1,7 @@
 data "aws_caller_identity" "current" { }
 
 provider "aws" {
-  region     = var.aws_region
+  region = var.aws_region
 }
 
 resource "random_pet" "lambda_bucket_name" {
@@ -18,8 +18,8 @@ resource "null_resource" "lambda_dependencies" {
   triggers = {
     //index = sha256(file("${path.module}/function/src/index.js"))
     package = sha256(file("${path.cwd}/code/package.json"))
-    lock = sha256(file("${path.cwd}/code/package-lock.json"))
-    node = sha256(join("",fileset(path.cwd, "code/src/**/*.js")))
+    lock    = sha256(file("${path.cwd}/code/package-lock.json"))
+    node    = sha256(join("",fileset(path.cwd, "code/src/**/*.js")))
   }
 }
 ### zip the code ###
@@ -129,7 +129,7 @@ module "settler_api" {
   region        = "${var.aws_region}"
   account_id    = "${data.aws_caller_identity.current.account_id}"
   rest_api      = "${aws_api_gateway_rest_api.test_api_gateway}"
-  stage_name    = "dev"
+  stage         = "dev"
   path          = each.key
   method        = each.value.method
   additional    = each.value.additional_list

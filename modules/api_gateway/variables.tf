@@ -4,7 +4,7 @@ variable "additional" {
 variable "rest_api" {
   description = "REST API"
 }
-variable "stage_name" {
+variable "stage" {
   description = "The stage name for the API deployment"
   default = "dev"
 }
