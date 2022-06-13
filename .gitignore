@@ -3,3 +3,4 @@
 code\node_modules
 **.zip
 **.tfstate**
+.terraform.lock.hcl
