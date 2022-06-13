@@ -1,0 +1,4 @@
+**node_modules
+.terraform/
+code\node_modules
+**.zip
