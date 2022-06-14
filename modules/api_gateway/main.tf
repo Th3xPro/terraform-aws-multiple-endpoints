@@ -1,6 +1,6 @@
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = var.rest_api.id
-  stage_name  = var.stage
+  # stage_name  = var.stage
   depends_on  = [
   aws_api_gateway_integration.request_method_integration_base,
   aws_api_gateway_integration.request_method_integration,
@@ -22,14 +22,26 @@ resource "aws_api_gateway_resource" "api_resource" {
 }
 
 resource "aws_api_gateway_method" "request_method_base" {
+  count = var.method != "SKIP" ? 1 : 0
   authorization = "NONE"
   http_method   = var.method
   resource_id   = "${aws_api_gateway_resource.api_resource.id}"
   rest_api_id   = var.rest_api.id
+  api_key_required = true
 }
-
+resource "aws_api_gateway_method_settings" "example" {
+  rest_api_id = var.rest_api.id
+  stage_name  = aws_api_gateway_stage.rest_api_stage.stage_name
+  method_path = "*/*"
+  settings {
+    data_trace_enabled = true
+    metrics_enabled    = true
+    logging_level      = "ERROR"
+  }
+}
 resource "aws_api_gateway_integration" "request_method_integration_base" {
-  http_method = "${aws_api_gateway_method.request_method_base.http_method}"
+  count = var.method != "SKIP" ? 1 : 0
+  http_method = "${aws_api_gateway_method.request_method_base[0].http_method}"
   resource_id = "${aws_api_gateway_resource.api_resource.id}"
   rest_api_id = var.rest_api.id
   type = "AWS_PROXY"
@@ -38,7 +50,8 @@ resource "aws_api_gateway_integration" "request_method_integration_base" {
 }
 
 resource "aws_api_gateway_method_response" "response_method_base" {
-  http_method = "${aws_api_gateway_integration.request_method_integration_base.http_method}"
+  count = var.method != "SKIP" ? 1 : 0
+  http_method = "${aws_api_gateway_integration.request_method_integration_base[0].http_method}"
   resource_id = "${aws_api_gateway_resource.api_resource.id}"
   rest_api_id = var.rest_api.id
   status_code = "200"
@@ -48,10 +61,11 @@ resource "aws_api_gateway_method_response" "response_method_base" {
 }
 
 resource "aws_api_gateway_integration_response" "response_method_integration_base" {
-  http_method = "${aws_api_gateway_method_response.response_method_base.http_method}"
+  count = var.method != "SKIP" ? 1 : 0
+  http_method = "${aws_api_gateway_method_response.response_method_base[0].http_method}"
   resource_id = "${aws_api_gateway_resource.api_resource.id}"
   rest_api_id = var.rest_api.id
-  status_code = "${aws_api_gateway_method_response.response_method_base.status_code}"
+  status_code = "${aws_api_gateway_method_response.response_method_base[0].status_code}"
 }
 
 ### ADDITIONAL PARAMETER ###
@@ -68,6 +82,7 @@ resource "aws_api_gateway_method" "request_method" {
   http_method   = var.additional[count.index].method
   resource_id   = "${aws_api_gateway_resource.messages_resource[count.index].id}"
   rest_api_id   = var.rest_api.id
+  api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "request_method_integration" {
@@ -77,7 +92,7 @@ resource "aws_api_gateway_integration" "request_method_integration" {
   rest_api_id = var.rest_api.id
   type = "AWS_PROXY"
   uri = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${var.region}:${var.account_id}:function:${var.lambda_name}/invocations"
-  integration_http_method = var.method
+  integration_http_method = var.additional[count.index].method
 }
 
 resource "aws_api_gateway_method_response" "response_method" {
@@ -104,6 +119,12 @@ resource "aws_lambda_permission" "apigw-lambda-allow" {
 # statement_id  = "AllowExecutionFromApiGateway"
   action        = "lambda:InvokeFunction"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${var.region}:${var.account_id}:${var.rest_api.id}/*/${var.method}${var.path}"
+  source_arn    = "arn:aws:execute-api:${var.region}:${var.account_id}:${var.rest_api.id}/*/${var.method}/${var.path}"
   depends_on    = [var.rest_api,aws_api_gateway_resource.api_resource,aws_api_gateway_resource.messages_resource]
   }
+
+  resource "aws_api_gateway_stage" "rest_api_stage" {
+  deployment_id = aws_api_gateway_deployment.deployment.id
+  rest_api_id   = var.rest_api.id
+  stage_name    = var.stage
+}

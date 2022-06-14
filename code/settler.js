@@ -1,8 +1,8 @@
-const Responses = require("../services/responsesUtils");
-const { executeSettler } = require("../services/executeUtils");
+const Responses = require("./src/services/responsesUtils");
+const { executeSettler } = require("./src/services/executeUtils");
 const { v4: uuidv4 } = require("uuid");
-const authorize = require("../services/auth");
-const { valPutSettler } = require("../validator/settlerValidator");
+const authorize = require("./src/services/auth");
+const { valPutSettler } = require("./src/validator/settlerValidator");
 
 function parseEvent(event) {
   const res =

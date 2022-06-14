@@ -1,8 +1,8 @@
-const Responses = require("../services/responsesUtils");
-const authorize = require("../services/auth");
+const Responses = require("./src/services/responsesUtils");
+const authorize = require("./src/services/auth");
 const { v4: uuidv4 } = require("uuid");
-const { executeCity } = require("../services/executeUtils");
-const { valPostCity } = require("../validator/cityValidator");
+const { executeCity } = require("./src/services/executeUtils");
+const { valPostCity } = require("./src/validator/cityValidator");
 
 function createSettler(data, cityId) {
   return data.map((obj) => {
@@ -20,12 +20,12 @@ function parseEvent(event) {
   return res;
 }
 
-exports.handler = async (eventz) => {
+exports.handler = async (event) => {
   console.log("TUTAJ", event);
   const data = {};
   try {
     //Authorize
-    // authorize(event.headers);
+    authorize(event.headers);
     //Defining route
     data.route = event.resource;
 

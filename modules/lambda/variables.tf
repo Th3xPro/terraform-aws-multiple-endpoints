@@ -15,10 +15,10 @@ variable "handler" {
   default     = "handler"
 }
 
-variable "role" {
-  type = string
-  description = "IAM role attached to the Lambda Function (ARN)"
-}
+# variable "role" {
+#   type = string
+#   description = "IAM role attached to the Lambda Function (ARN)"
+# }
 
 variable "stage" {
   type = string
