@@ -45,8 +45,8 @@ resource "aws_api_gateway_integration" "request_method_integration_base" {
   resource_id = "${aws_api_gateway_resource.api_resource.id}"
   rest_api_id = var.rest_api.id
   type = "AWS_PROXY"
-  uri = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${var.region}:${var.account_id}:function:${var.lambda_name}/invocations"
-  integration_http_method = var.method
+  uri = var.lambda_invoke_arn
+  integration_http_method = "POST"
 }
 
 resource "aws_api_gateway_method_response" "response_method_base" {
@@ -91,8 +91,8 @@ resource "aws_api_gateway_integration" "request_method_integration" {
   resource_id = "${aws_api_gateway_resource.messages_resource[count.index].id}"
   rest_api_id = var.rest_api.id
   type = "AWS_PROXY"
-  uri = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${var.region}:${var.account_id}:function:${var.lambda_name}/invocations"
-  integration_http_method = var.additional[count.index].method
+  uri = var.lambda_invoke_arn
+  integration_http_method = "POST"
 }
 
 resource "aws_api_gateway_method_response" "response_method" {
@@ -127,4 +127,30 @@ resource "aws_lambda_permission" "apigw-lambda-allow" {
   deployment_id = aws_api_gateway_deployment.deployment.id
   rest_api_id   = var.rest_api.id
   stage_name    = var.stage
+}
+resource "aws_api_gateway_usage_plan" "example" {
+  name         = "my-apikey-usage-plan"
+  description  = "my description"
+  product_code = "MYCODE"
+
+  api_stages {
+    api_id = var.rest_api.id
+    stage  = aws_api_gateway_stage.rest_api_stage.stage_name
+  }
+
+  quota_settings {
+    limit  = 1000
+    offset = 2
+    period = "MONTH"
+  }
+
+  throttle_settings {
+    burst_limit = 20
+    rate_limit  = 5
+  }
+}
+resource "aws_api_gateway_usage_plan_key" "main" {
+  key_id        = var.api_key.id
+  key_type      = "API_KEY"
+  usage_plan_id = aws_api_gateway_usage_plan.example.id
 }

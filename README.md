@@ -21,7 +21,7 @@ NEW ADDED
 
 TO DO
 
-- make visible somehow logs from API GW
 - Finish adding SQS
-- Check all roles are set correctly
-- Fix errors with stage on api. (works but visible errors in console)
+- cleanup code with better arrange modules and data between modules
+- fix errors in console (above will fix)
+- add aws_ssm_parameter

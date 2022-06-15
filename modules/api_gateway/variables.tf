@@ -18,8 +18,15 @@ variable "path" {
   description = "The path of endpoint"
 }
 variable "lambda_name" {
-  description = "The ARN of Lambda to invoke"
+  description = "The Name of Lambda to invoke"
+}
+variable "lambda_invoke_arn" {
+    description = "The ARN of Lambda to invoke"
+
 }
 variable "region" {
   description = "The AWS region"
+}
+variable "api_key" {
+  description = "Api key"
 }
