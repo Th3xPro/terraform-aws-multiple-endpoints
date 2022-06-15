@@ -30,3 +30,9 @@ variable "region" {
 variable "api_key" {
   description = "Api key"
 }
+variable "use_api_key" {
+  description = "Bool of Api key use"
+}
+variable "enable_api_logs" {
+  description = "Bool of Api logs use"
+}

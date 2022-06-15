@@ -22,6 +22,6 @@ NEW ADDED
 TO DO
 
 - Finish adding SQS
-- cleanup code with better arrange modules and data between modules
-- fix errors in console (above will fix)
+- cleanup code with better names
+- clear error from console 'Stage already exists' to don't display
 - add aws_ssm_parameter

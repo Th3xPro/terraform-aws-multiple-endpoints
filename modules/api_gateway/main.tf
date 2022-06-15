@@ -1,12 +1,6 @@
+### DEPLOYMENT ###
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = var.rest_api.id
-  # stage_name  = var.stage
-  depends_on  = [
-  aws_api_gateway_integration.request_method_integration_base,
-  aws_api_gateway_integration.request_method_integration,
-  aws_api_gateway_integration_response.response_method_integration,
-  aws_api_gateway_integration_response.response_method_integration_base
-  ]
    triggers   = {
     redeployment = sha1(jsonencode(var.rest_api.body))
   }
@@ -27,11 +21,13 @@ resource "aws_api_gateway_method" "request_method_base" {
   http_method   = var.method
   resource_id   = "${aws_api_gateway_resource.api_resource.id}"
   rest_api_id   = var.rest_api.id
-  api_key_required = true
+  api_key_required = var.use_api_key
 }
+
 resource "aws_api_gateway_method_settings" "example" {
+  count = var.enable_api_logs ? 1 : 0
   rest_api_id = var.rest_api.id
-  stage_name  = aws_api_gateway_stage.rest_api_stage.stage_name
+  stage_name  = var.stage
   method_path = "*/*"
   settings {
     data_trace_enabled = true
@@ -82,7 +78,7 @@ resource "aws_api_gateway_method" "request_method" {
   http_method   = var.additional[count.index].method
   resource_id   = "${aws_api_gateway_resource.messages_resource[count.index].id}"
   rest_api_id   = var.rest_api.id
-  api_key_required = true
+  api_key_required = var.use_api_key
 }
 
 resource "aws_api_gateway_integration" "request_method_integration" {
@@ -123,12 +119,19 @@ resource "aws_lambda_permission" "apigw-lambda-allow" {
   depends_on    = [var.rest_api,aws_api_gateway_resource.api_resource,aws_api_gateway_resource.messages_resource]
   }
 
-  resource "aws_api_gateway_stage" "rest_api_stage" {
+### STAGE ###
+resource "aws_api_gateway_stage" "rest_api_stage" {
   deployment_id = aws_api_gateway_deployment.deployment.id
   rest_api_id   = var.rest_api.id
   stage_name    = var.stage
+  provisioner "local-exec" {
+    command = "Ignore error -> 'Stage already exists' "
+    on_failure = continue
+  }
 }
+
 resource "aws_api_gateway_usage_plan" "example" {
+  count        = var.use_api_key ? 1 : 0
   name         = "my-apikey-usage-plan"
   description  = "my description"
   product_code = "MYCODE"
@@ -150,7 +153,8 @@ resource "aws_api_gateway_usage_plan" "example" {
   }
 }
 resource "aws_api_gateway_usage_plan_key" "main" {
-  key_id        = var.api_key.id
+  count         = var.use_api_key ? 1 : 0
+  key_id        = "${var.api_key[count.index].id}"
   key_type      = "API_KEY"
-  usage_plan_id = aws_api_gateway_usage_plan.example.id
+  usage_plan_id = "${aws_api_gateway_usage_plan.example[count.index].id}"
 }
